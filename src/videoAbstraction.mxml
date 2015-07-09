@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" xmlns:dougmccune="com.dougmccune.containers.*"
+	layout="absolute" frameRate="24" horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="init()">
+	<mx:Script>
+		<![CDATA[
+			import flash.utils.getQualifiedClassName;
+			
+			import mx.containers.FormItem;
+			import mx.controls.Alert;
+			import mx.collections.ArrayCollection;
+			
+			import com.symantec.premiumServices.asyncThreading.events.AsyncThreadEvent;
+			
+			import net.onthewings.filters.SimpleAbstractionFilter;
+			import net.onthewings.filters.AbstractionFilter;
+			import net.onthewings.filters.FilterWrapper;
+			import net.onthewings.utils.PanelUtil;
+			import net.onthewings.utils.BlendModeUtil;
+			
+			[Bindable]
+			private var camera:Camera;
+			[Bindable]
+			private var videoFile:FileReference = new FileReference();
+			[Bindable]
+			private var videoFileBrowsed:Boolean = false;
+			[Bindable]
+			private var videoFileFilters:Array = [new FileFilter("Flash videos", "flv")];
+			[Bindable]
+			private var autoPlayVideoFile:Boolean = false;
+			
+			[Bindable]
+			public var inputWidth:uint = 320;
+			[Bindable]
+			public var inputHeight:uint = 240;
+			[Bindable]
+			public var outputWidth:uint = 320;
+			[Bindable]
+			public var outputHeight:uint = 240;
+			
+			[Bindable]
+			public var resultBitmapData:BitmapData = new BitmapData(outputWidth,outputHeight,false,0);
+			[Bindable]
+			public var resultBitmap:Bitmap = new Bitmap(resultBitmapData);
+			
+			[Bindable]
+			public var processVideoThread:ProcessVideoThread;
+			[Bindable]
+			public var processFrame:int = -1;
+			
+			[Bindable]
+			public var implementations:ArrayCollection = new ArrayCollection([new SimpleAbstractionFilter(), new AbstractionFilter()]);
+			
+			
+			private function init():void{
+				resultCanvas.rawChildren.addChild(resultBitmap);
+				
+				processVideoThread = new ProcessVideoThread(videoDisplay,[implementations.getItemAt(0)],resultBitmapData);
+				processVideoThread.start();
+				processVideoThread.sleep();
+				processVideoThread.addEventListener(AsyncThreadEvent.SLEEP,threadSleepHandler);
+				
+				selectCamera();
+				
+				videoFile.addEventListener(Event.SELECT,videoFileSelectHandler);
+				videoFile.addEventListener(SecurityErrorEvent.SECURITY_ERROR,videoFileErrorHandler);
+			}
+			
+			private function threadSleepHandler(evt:AsyncThreadEvent):void {
+				toggleFilter(0);
+			}
+			
+			private function inputTypeChangeHandler(evt:Event = null):void {
+				if (inputTypeComboBox.selectedLabel == "Camera"){
+					selectCamera();
+				} else if (inputTypeComboBox.selectedLabel == "Video File") {
+					//Check if videoFileBrowsed.browse() is called
+					if (!videoFileBrowsed) {
+						videoFile.browse(videoFileFilters);
+						autoPlayVideoFile = true;
+					} else {
+						//TO-DO
+						//let user place files in other folder.
+						videoDisplay.source = null;
+						videoDisplay.source = "video/"+videoFile.name;
+						videoDisplay.play();
+					}
+				}
+			}
+			
+			private function selectCamera():void {
+				camera = Camera.getCamera(String(cameraNameComboBox.dataProvider.length-1 - cameraNameComboBox.selectedIndex));
+				setCameraMode();
+				videoDisplay.attachCamera(camera);
+			}
+			
+			private function setCameraMode():void {
+				if (camera){
+					camera.setMode(cameraResolutionComboBox.selectedItem.width, cameraResolutionComboBox.selectedItem.height, cameraFPSStepper.value);
+					inputWidth = camera.width;
+					inputHeight = camera.height;
+				}
+			}
+			
+			private function videoFileErrorHandler(evt:SecurityErrorEvent):void {
+				Alert.show(evt.text,evt.type);
+			}
+			
+			private function videoFileSelectHandler(evt:Event):void {
+				videoFileBrowsed = true;
+				fileName.text = videoFile.name;
+				if (autoPlayVideoFile) inputTypeChangeHandler();
+			}
+			
+			private function toggleFilter(on:int = -1):void {
+				if (on == 1 || (on ==-1 && processVideoThread.sleeping)){
+					processVideoThread.countFrame = countFrameNumStep.value;
+					processVideoThread.wake();
+					startBtn.label = "filter working...";
+					if (!startBtn.selected) startBtn.selected = true;
+				} else {
+					processVideoThread.sleep();
+					startBtn.label = "Start filter";
+					if (startBtn.selected) startBtn.selected = false;
+				}
+			}
+			
+			private function implComboBoxLabelFunction(item:Object):String {
+				var name:String = getQualifiedClassName(item);
+				return name.substr(name.lastIndexOf('::')+2);
+			}
+			
+			/**
+			 * Set the processVideoThread.effectApplyRect to selection.
+			 */
+			private function applyRect():void{
+				var rect:Rectangle = effectApplyArea.getRect(resultCanvas).intersection(resultCanvas.getRect(resultCanvas));
+				processVideoThread.effectApplyRect = rect;
+				processVideoThread.effectApplyPoint = new Point(rect.x,rect.y);
+			}
+			
+			private function implChange():void{
+				var filter:FilterWrapper = implComboBox.selectedItem as FilterWrapper;
+				processVideoThread.filters = [filter];
+				
+				if (filter is SimpleAbstractionFilter){
+
+				} else if (filter is AbstractionFilter){
+					
+				}
+			}
+			
+			private function resetEffectApplyArea():void {
+				effectApplyArea.x = resultCanvas.x; 
+				effectApplyArea.y = resultCanvas.y; 
+				effectApplyArea.width = resultCanvas.width; 
+				effectApplyArea.height = resultCanvas.height;
+				callLater(applyRect);
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:Panel id="videoHolder" title="Video" layout="absolute" x="400" y="10" width="{inputWidth+outputWidth+70}" height="{Math.max(inputHeight,outputHeight)+80}"
+		horizontalScrollPolicy="off" verticalScrollPolicy="off"
+		creationComplete="PanelUtil.makePanelDraggable(event.target as Panel)">
+		<mx:VideoDisplay id="videoDisplay" x="20" y="20" width="{inputWidth}" height="{inputHeight}" toolTip="original input" 
+			stateChange="event.state == 'stopped'; videoDisplay.play();" />
+		<mx:Canvas id="resultCanvas" x="{inputWidth+30}" y="20" width="{outputWidth}" height="{outputHeight}" toolTip="result"
+			horizontalScrollPolicy="off" verticalScrollPolicy="off"/>
+		<dougmccune:ResizableWrapper id="effectApplyArea"
+			creationComplete="resetEffectApplyArea()"
+			resize="applyRect()" move="applyRect()" 
+			doubleClickEnabled="true" doubleClick="resetEffectApplyArea()">
+			<mx:Canvas id="emptyCanvas" />
+		</dougmccune:ResizableWrapper>
+	</mx:Panel>
+	
+	<mx:Panel id="cameraSettingPanel" title="Input Setting"
+		creationComplete="PanelUtil.makePanelDraggable(event.target as Panel);" x="10" y="10">
+		<mx:Form>
+			<mx:FormItem label="Input type">
+				<mx:ComboBox id="inputTypeComboBox" change="inputTypeChangeHandler(event)">
+					<mx:dataProvider>
+						<mx:ArrayCollection>
+							<mx:Object label="Camera" />
+							<mx:Object label="Video File" />
+						</mx:ArrayCollection>
+					</mx:dataProvider>
+				</mx:ComboBox>
+			</mx:FormItem>
+			
+			<mx:Spacer height="5" />
+			
+			<mx:FormHeading label="Camera Setting"/>
+			<mx:FormItem label="Camera">
+				<mx:ComboBox id="cameraNameComboBox" dataProvider="{Camera.names.reverse()}" change="selectCamera()" />
+			</mx:FormItem>
+			<mx:FormItem label="Resolution">
+				<mx:ComboBox id="cameraResolutionComboBox" selectedIndex="3" change="setCameraMode()">
+					<mx:dataProvider>
+						<mx:ArrayCollection>
+							<mx:Object label="1024*768" width="1024" height="768" />
+							<mx:Object label="800*600" width="800" height="600" />
+							<mx:Object label="640*480" width="640" height="480" />
+							<mx:Object label="320*240" width="320" height="240" />
+						</mx:ArrayCollection>
+					</mx:dataProvider>
+				</mx:ComboBox>
+			</mx:FormItem>
+			<mx:FormItem label="FPS">
+				<mx:NumericStepper id="cameraFPSStepper" minimum="1" maximum="30" stepSize="1" value="24"
+					change="setCameraMode()" />
+			</mx:FormItem>
+			
+			<mx:Spacer height="5" />
+			
+			<mx:FormHeading label="Video File Setting" />
+			<mx:FormItem label="File source">
+				<mx:Label id="fileName" />
+				<mx:Button label="browse" click="videoFile.browse(videoFileFilters)" />
+			</mx:FormItem>
+		</mx:Form>
+	</mx:Panel>
+	<mx:Binding 
+		source		= "processVideoThread.countFrame"
+		destination	= "countFrameNumStep.value" />
+	<mx:Binding 
+		source="countFrameNumStep.value"
+		destination="processVideoThread.countFrame" />
+	
+	<mx:Panel id="filterSettingPanel" title="Filter Setting" layout="vertical" x="10" y="335"
+		creationComplete="PanelUtil.makePanelDraggable(event.target as Panel)">
+		<mx:Form id="filterSettingForm">
+			<mx:FormItem label="Filter processing time">
+				<mx:Label id="processTimeLabel" enterFrame="if (processVideoThread) processTimeLabel.text = processVideoThread.processTime.toString()+' ms';" />
+			</mx:FormItem>
+			<mx:FormItem label="Process frame" toolTip="The filter will auto stop after processing this number of frames.">
+				<mx:NumericStepper id="countFrameNumStep" value="{processVideoThread.countFrame}" minimum="-1" maximum="240" />
+			</mx:FormItem>
+			<mx:FormItem label="Implementation">
+				<mx:ComboBox id="implComboBox" dataProvider="{implementations}" 
+					labelFunction="{implComboBoxLabelFunction}" change="implChange()" />
+			</mx:FormItem>
+			<mx:FormItem label="Process stage" toolTip="The stage in applying the filter.">
+				<mx:NumericStepper id="processStageNumStep"
+					value="3"
+					minimum="1"
+					maximum="{(implementations.getItemAt(implComboBox.selectedIndex) as Object).MAX_PROCESS_STAGE}"/>
+			</mx:FormItem>
+		</mx:Form>
+		<mx:TabNavigator width="100%">
+			<mx:Form label="SimpleAbstractionFilter" width="100%">
+				<mx:FormItem label="Number of blur">
+					<mx:NumericStepper id="saf_numOfBlur" minimum="0" maximum="20"
+						value="{(implementations.getItemAt(0) as SimpleAbstractionFilter).numOfBlur}"
+						change="(implementations.getItemAt(0) as SimpleAbstractionFilter).numOfBlur = saf_numOfBlur.value" />
+				</mx:FormItem>
+				<mx:FormItem label="Blend Mode">
+					<mx:ComboBox id="saf_blendMode" 
+						dataProvider="{BlendModeUtil.constArray}"
+						selectedIndex="{BlendModeUtil.getIndexOfConstArray((implementations.getItemAt(0) as SimpleAbstractionFilter).blendMode)}" 
+						change="(implementations.getItemAt(0) as SimpleAbstractionFilter).blendMode = saf_blendMode.selectedLabel"  />
+				</mx:FormItem>
+			</mx:Form>
+			
+			<mx:Form label="AbstractionFilter" width="100%">
+				<mx:FormHeading label="Blur" />
+				<mx:FormItem label="d" toolTip="Affacts the Gaussian function which based on distance.">
+					<mx:HSlider id="af_d" minimum="0.001" maximum="10" liveDragging="true"
+						creationComplete	= "af_d.value = (implementations.getItemAt(1) as AbstractionFilter).bilateralBlurShader.data.d.value[0]"
+						change				= "(implementations.getItemAt(1) as AbstractionFilter).bilateralBlurShader.data.d.value[0] = af_d.value"/>
+				</mx:FormItem>
+				<mx:FormItem label="r" toolTip="Affects the Gaussian function which based on color channels(including alpha)">
+					<mx:HSlider id="af_r" minimum="0.001" maximum="10" liveDragging="true"
+						creationComplete	= "af_r.value = (implementations.getItemAt(1) as AbstractionFilter).bilateralBlurShader.data.r.value[0]"
+						change				= "(implementations.getItemAt(1) as AbstractionFilter).bilateralBlurShader.data.r.value[0] = af_r.value"/>
+				</mx:FormItem>
+				
+				<mx:FormHeading label="Edge detection" />
+				<mx:FormItem label="spatialScale" toolTip="Spatial scale for edge detection.">
+					<mx:HSlider id="af_spatialScale" minimum="0.001" maximum="20" liveDragging="true"
+						creationComplete	= "af_spatialScale.value = (implementations.getItemAt(1) as AbstractionFilter).doGShader.data.spatialScale.value[0]"
+						change				= "(implementations.getItemAt(1) as AbstractionFilter).doGShader.data.spatialScale.value[0] = af_spatialScale.value" />
+				</mx:FormItem>
+				<mx:FormItem label="sensitivity" toolTip="Amount of center-surround difference required for cell activation.">
+					<mx:HSlider id="af_sensitivity" minimum="0.001" maximum="1" liveDragging="true"
+						creationComplete	= "af_sensitivity.value = (implementations.getItemAt(1) as AbstractionFilter).doGShader.data.sensitivity.value[0]"
+						change				= "(implementations.getItemAt(1) as AbstractionFilter).doGShader.data.sensitivity.value[0] = af_sensitivity.value" />
+				</mx:FormItem>
+				<mx:FormItem label="sharpness" toolTip="Sharpness of the activation falloff.">
+					<mx:HSlider id="af_sharpness" minimum="0.001" maximum="10" liveDragging="true"
+						creationComplete	= "af_sharpness.value = (implementations.getItemAt(1) as AbstractionFilter).doGShader.data.sharpness.value[0]"
+						change				= "(implementations.getItemAt(1) as AbstractionFilter).doGShader.data.sharpness.value[0] = af_sharpness.value" />
+				</mx:FormItem>
+				
+				<mx:Spacer height="5" />
+				
+				<mx:FormItem label="Blend Mode">
+					<mx:ComboBox id="af_blendMode" 
+						dataProvider="{BlendModeUtil.constArray}"
+						selectedIndex="{BlendModeUtil.getIndexOfConstArray((implementations.getItemAt(1) as AbstractionFilter).blendMode)}" 
+						change="(implementations.getItemAt(1) as AbstractionFilter).blendMode = af_blendMode.selectedLabel"  />
+				</mx:FormItem>
+			</mx:Form>
+		</mx:TabNavigator>
+		<mx:ControlBar>
+			<mx:Button id="startBtn" label="Start filter" toggle="true" width="100%" click="toggleFilter()" />
+		</mx:ControlBar>
+	</mx:Panel>
+	<mx:Binding 
+		source		= "processStageNumStep.value" 
+		destination	= "(implementations.getItemAt(implComboBox.selectedIndex) as Object).processStage" />
+	<mx:Binding 
+		source		= "(implementations.getItemAt(implComboBox.selectedIndex) as Object).processStage"
+		destination	= "processStageNumStep.value" />
+	
+</mx:Application>

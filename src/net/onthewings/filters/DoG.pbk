@@ -1,0 +1,512 @@
+<languageVersion : 1.0;>
+
+kernel DoG
+<   namespace : "net.onthewings.filters";
+    vendor : "Andy Li";
+    version : 1;
+    description : "Difference-of-Gaussians filter. Edges are defined using a slightly smoothed step function. Ref: <Real-Time Video Abstraction> by Holger Winnemoller Sven C. Olsen Bruce Gooch. Northwestern University.";
+>
+{
+    parameter float spatialScale<
+        minValue: 0.001;
+        maxValue: 20.0;
+        defaultValue: 0.6;
+        description: "Spatial scale for edge detection.";
+    >;
+    parameter float sensitivity<
+        minValue: 0.001;
+        maxValue: 1.0;
+        defaultValue: 0.98;
+        description: "Amount of center-surround difference required for cell activation.";
+    >;
+    parameter float sharpness<
+        minValue: 0.001;
+        maxValue: 10.0;
+        defaultValue: 1.0;
+        description: "Sharpness of the activation falloff.";
+    >;
+
+    input image4 src;
+    output pixel4 dst;
+
+    void evaluatePixel(){
+        float2 pt, curPt;
+        float4 p0, p, Se, Sr;
+        float diffVal;
+        float pi = 3.141592653589793;
+        
+        curPt = outCoord();
+        p0 = Se = Sr = float4(0.0,0.0,0.0,0.0);
+        
+        /*
+        Only 9x9 area is sampled for each pixel.
+        
+        Copy and paste the below comment block to Flash to gen the codes below.
+        
+        function formatNumber(num:Number,forceSign:Boolean = true):String{
+            var str:String = num.toString();
+            if (num-Math.floor(num) == 0){
+                str += ".0";
+            }
+            
+            if (num < 0){
+                return str;
+            }else {
+                return "+"+str;
+            }
+        }
+        
+        var sampleLength:uint = 4;
+        
+        trace("p0 = sampleNearest(src,curPt);")
+        for (var x:int = -4 ; x<=4 ; x++){
+        	if (x == -sampleLength){
+        		trace("pt.x = curPt.x" + formatNumber(-sampleLength) + ";")
+        	} else {
+        		trace("++pt.x;")
+        	}
+            for (var y:int = -4 ; y<=4 ; y++){
+            	if (y == -sampleLength){
+	        		trace("pt.y = curPt.y" + formatNumber(-sampleLength) + ";")
+	        	} else {
+	        		trace("++pt.y;")
+	        	}
+                trace("p = sampleNearest(src,pt);");
+                trace("Se += p * exp(-0.5 * pow("+formatNumber(Point.distance(new Point(),new Point(x,y)),false)+"/spatialScale,2.0));");
+                trace("Sr += p * exp(-0.5 * pow("+formatNumber(Point.distance(new Point(),new Point(x,y)),false)+"/("+formatNumber(Math.sqrt(1.6))+"*spatialScale),2.0));");
+                trace("");
+            }
+        }
+        */
+
+        p0 = sampleNearest(src,curPt);
+        pt.x = curPt.x-4.0;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.656854249492381/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.656854249492381/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.656854249492381/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.656854249492381/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.242640687119285/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.242640687119285/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.242640687119285/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.242640687119285/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.8284271247461903/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.8284271247461903/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.8284271247461903/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.8284271247461903/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.4142135623730951/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.4142135623730951/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.4142135623730951/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.4142135623730951/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+0.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+0.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.4142135623730951/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.4142135623730951/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+1.4142135623730951/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+1.4142135623730951/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.8284271247461903/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.8284271247461903/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.23606797749979/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.23606797749979/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+2.8284271247461903/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+2.8284271247461903/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.242640687119285/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.242640687119285/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.1622776601683795/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.1622776601683795/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+3.605551275463989/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+3.605551275463989/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.242640687119285/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.242640687119285/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.x;
+        pt.y = curPt.y-4.0;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.656854249492381/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.656854249492381/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.123105625617661/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.123105625617661/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+4.47213595499958/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+4.47213595499958/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.0/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.0/(+1.2649110640673518*spatialScale),2.0));
+
+        ++pt.y;
+        p = sampleNearest(src,pt);
+        Se += p * exp(-0.5 * pow(+5.656854249492381/spatialScale,2.0));
+        Sr += p * exp(-0.5 * pow(+5.656854249492381/(+1.2649110640673518*spatialScale),2.0));
+
+        //--- end of gen
+        
+        Se *= 2.0*pi*pow(spatialScale,-2.0);
+        Sr *= 2.0*pi*pow(1.2649110640673518*spatialScale,-2.0);
+        
+        dst = float4(1,1,1,1);
+        
+        diffVal = (0.2125 * Se.r + 0.7154 * Se.g + 0.0721 * Se.b) - sensitivity*(0.2125 * Sr.r + 0.7154 * Sr.g + 0.0721 * Sr.b);
+        if (diffVal <= 0.0) {
+            diffVal--;
+            diffVal *= 2.0*sharpness;
+            diffVal = (exp(diffVal)-1.0)/(exp(diffVal)+1.0);
+            dst += float4(diffVal,diffVal,diffVal,0);
+        }
+    }
+}

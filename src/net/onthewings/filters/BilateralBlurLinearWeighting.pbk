@@ -1,0 +1,954 @@
+<languageVersion : 1.0;>
+
+kernel BilateralBlurLinearWeighting
+<   namespace : "net.onthewings.filters";
+    vendor : "Andy Li";
+    version : 1;
+    description : "Bilateral Blur. The weighting functions are linear. y=-x/limit+1; y=abs(y);";
+>
+{
+    parameter float distanceLimit<
+        minValue: 0.00001;
+        maxValue: 10.0;
+        defaultValue: 4.0;
+        description: "x-intercept for distance's weighting function.";
+    >;
+
+    parameter float colorLimit<
+        minValue: 0.00001;
+        maxValue: 10.0;
+        defaultValue: 0.3;
+        description: "x-intercept for color's weighting function.";
+    >;
+
+    input image4 src;
+    output pixel4 dst;
+
+    void evaluatePixel(){
+        float2 curPt = outCoord();
+        float4 p, tempP, totalP;
+        float s, w, totalWeight;
+        float3 vec;
+        
+        /*
+        function formatNumber(num:Number,forceSign:Boolean = true):String{
+            var str:String = num.toString();
+            if (num-Math.floor(num) == 0){
+                str += ".0";
+            }
+            
+            if (num < 0){
+                return str;
+            }else {
+                return "+"+str;
+            }
+        }
+        
+        for (var x:int = -4 ; x<=4 ; x++){
+            for (var y:int = -4 ; y<=4 ; y++){
+                if (x==0 && y==0){
+                    trace("totalP += sampleNearest(src,float2(curPt.x,curPt.y));");
+                    trace("totalWeight ++;");
+                } else {
+                    trace("p = sampleNearest(src,float2(curPt.x"+formatNumber(x)+",curPt.y"+formatNumber(y)+"));");
+                    trace("w = "+ formatNumber(-Point.distance(new Point(),new Point(x,y)))+"/distanceLimit+1.0;");
+                    trace("w = w>0.0 ? w : 0.0;");
+                    trace("tempP = abs(sampleNearest(src,curPt)-p);");
+                    trace("s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);");
+                    trace("s = -s/colorLimit+1.0;");
+                    trace("w *= s>0.0 ? s : 0.0;");
+                    trace("p *= w;");
+                    trace("totalP += p;");
+                    trace("totalWeight += w;");
+                }
+                trace("");
+            }
+        }
+        */
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y-4.0));
+        w = -5.656854249492381/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP = p;
+        totalWeight = w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y-3.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y-2.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y-1.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y+0.0));
+        w = -4.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y+1.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y+2.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y+3.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-4.0,curPt.y+4.0));
+        w = -5.656854249492381/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y-4.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y-3.0));
+        w = -4.242640687119285/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y-2.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y-1.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y+0.0));
+        w = -3.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y+1.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y+2.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y+3.0));
+        w = -4.242640687119285/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-3.0,curPt.y+4.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y-4.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y-3.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y-2.0));
+        w = -2.8284271247461903/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y-1.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y+0.0));
+        w = -2.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y+1.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y+2.0));
+        w = -2.8284271247461903/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y+3.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-2.0,curPt.y+4.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y-4.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y-3.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y-2.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y-1.0));
+        w = -1.4142135623730951/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y+0.0));
+        w = -1.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y+1.0));
+        w = -1.4142135623730951/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y+2.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y+3.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x-1.0,curPt.y+4.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y-4.0));
+        w = -4.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y-3.0));
+        w = -3.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y-2.0));
+        w = -2.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y-1.0));
+        w = -1.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        totalP += sampleNearest(src,float2(curPt.x,curPt.y));
+        totalWeight ++;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y+1.0));
+        w = -1.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y+2.0));
+        w = -2.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y+3.0));
+        w = -3.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+0.0,curPt.y+4.0));
+        w = -4.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y-4.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y-3.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y-2.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y-1.0));
+        w = -1.4142135623730951/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y+0.0));
+        w = -1.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y+1.0));
+        w = -1.4142135623730951/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y+2.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y+3.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+1.0,curPt.y+4.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y-4.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y-3.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y-2.0));
+        w = -2.8284271247461903/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y-1.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y+0.0));
+        w = -2.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y+1.0));
+        w = -2.23606797749979/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y+2.0));
+        w = -2.8284271247461903/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y+3.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+2.0,curPt.y+4.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y-4.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y-3.0));
+        w = -4.242640687119285/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y-2.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y-1.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y+0.0));
+        w = -3.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y+1.0));
+        w = -3.1622776601683795/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y+2.0));
+        w = -3.605551275463989/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y+3.0));
+        w = -4.242640687119285/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+3.0,curPt.y+4.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y-4.0));
+        w = -5.656854249492381/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y-3.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y-2.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y-1.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y+0.0));
+        w = -4.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y+1.0));
+        w = -4.123105625617661/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y+2.0));
+        w = -4.47213595499958/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y+3.0));
+        w = -5.0/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        p = sampleNearest(src,float2(curPt.x+4.0,curPt.y+4.0));
+        w = -5.656854249492381/distanceLimit+1.0;
+        w = w>0.0 ? w : 0.0;
+        tempP = abs(sampleNearest(src,curPt)-p);
+        s = 0.25*(tempP[0]+tempP[1]+tempP[2]+tempP[3]);
+        s = -s/colorLimit+1.0;
+        w *= s>0.0 ? s : 0.0;
+        p *= w;
+        totalP += p;
+        totalWeight += w;
+
+        dst = totalP/totalWeight;
+    }
+}

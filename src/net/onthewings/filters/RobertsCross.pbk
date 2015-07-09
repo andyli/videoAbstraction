@@ -1,0 +1,21 @@
+<languageVersion : 1.0;>
+
+kernel RobertsCross
+<   namespace : "net.onthewings.filters";
+    vendor : "Andy Li";
+    version : 1;
+    description : "Roberts Cross operation for edge detection.";
+>
+{
+    input image4 src;
+    output pixel4 dst;
+    
+    void
+    evaluatePixel()
+    {
+        float2 curPt = outCoord();
+        
+        dst = abs(sampleNearest(src,float2(curPt.x,curPt.y)) - sampleNearest(src,float2(curPt.x+1.0,curPt.y+1.0))) + abs(sampleNearest(src,float2(curPt.x+1.0,curPt.y)) - sampleNearest(src,float2(curPt.x,curPt.y+1.0)));
+        dst.a = 1.0;
+    }
+}

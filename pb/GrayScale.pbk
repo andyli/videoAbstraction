@@ -1,0 +1,24 @@
+<languageVersion : 1.0;>
+
+kernel GrayScale
+<   namespace : "mesh";
+    vendor : "Mike Chambers";
+    version : 1;
+    description : "Gray scale filter";
+>
+{
+    input image4 src;
+    output pixel4 dst;
+
+    void
+    evaluatePixel()
+    {
+        dst = sampleNearest(src,outCoord());
+
+        //algorithm from ITU-R Recommendation BT.709
+        //http://local.wasp.uwa.edu.au/~pbourke/texture_colour/imageprocess/
+        float avg = 0.2125 * dst.r + 0.7154 * dst.g + 0.0721 * dst.b;
+        dst = float4(avg, avg, avg, dst.a);
+
+    }
+}

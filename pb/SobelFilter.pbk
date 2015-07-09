@@ -1,0 +1,123 @@
+<languageVersion : 1.0;>
+
+
+kernel SobelFilter
+
+<   namespace : "buzzler";
+
+    vendor : "Mobsword Systems";
+
+    version : 1;
+
+    description : "Sobel Operation";
+
+>
+
+{
+
+    input   image4  src;
+
+    output  pixel4  dst;
+
+    const   pixel4  black   = pixel4(0.0, 0.0, 0.0, 1.0);
+
+    const   float   low     = 1.0;
+
+    const   float   high    = 2.0;
+
+    const   float   p_width = 1.0;
+
+
+    void    evaluatePixel()
+
+    {
+
+        float   g, gx, gy;
+
+        float2  coord = outCoord();
+
+        pixel4  sampled;
+
+        float   tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0]-p_width , coord[1]-p_width));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gx += low * tone;
+
+        gy += low * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0] , coord[1]-p_width));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gy += high * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0]+p_width , coord[1]-p_width));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gx -= low * tone;
+
+        gy += low * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0]-p_width , coord[1]));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gx += high * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0]+p_width , coord[1]));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gx -= high * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0]-p_width , coord[1]+p_width));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gx += low * tone;
+
+        gy -= low * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0] , coord[1]+p_width));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gy -= high * tone;
+
+        
+
+        sampled = sampleLinear(src, float2(coord[0]+p_width , coord[1]+p_width));
+
+        tone = (sampled.r + sampled.g + sampled.b) / 3.0;
+
+        gx -= low * tone;
+
+        gy -= low * tone;
+
+        
+
+        g = sqrt(pow(gx, 2.0) + pow(gy, 2.0));
+
+        dst = mix(sampled, black, g);
+
+    }
+
+}
